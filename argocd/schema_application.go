@@ -1444,15 +1444,17 @@ func applicationSpecSchemaV4(allOptional bool) *schema.Schema {
 								Description: "Path/directory specific options.",
 								DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
 									// Avoid drift when recurse is explicitly set to false
-									// Also ignore the directory node if both recurse & jsonnet are not set or ignored
 									if k == "spec.0.source.0.directory.0.recurse" && oldValue == "" && newValue == "false" {
 										return true
 									}
+									// Also ignore the directory node if none of the sub-fields are set
 									if k == "spec.0.source.0.directory.#" {
 										_, hasRecurse := d.GetOk("spec.0.source.0.directory.0.recurse")
 										_, hasJsonnet := d.GetOk("spec.0.source.0.directory.0.jsonnet")
+										_, hasExclude := d.GetOk("spec.0.source.0.directory.0.exclude")
+										_, hasInclude := d.GetOk("spec.0.source.0.directory.0.include")
 
-										if !hasJsonnet && !hasRecurse {
+										if !hasJsonnet && !hasRecurse && !hasExclude && !hasInclude {
 											return true
 										}
 									}
